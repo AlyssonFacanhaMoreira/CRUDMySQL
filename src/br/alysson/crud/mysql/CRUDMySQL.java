@@ -42,7 +42,7 @@ public class CRUDMySQL {
         PersonDao personDao = new PersonDao();
         //personDao.create(person);
         //personDao.update(person);
-        personDao.delete(person);
+        //personDao.delete(person);
         
         /*
         List<Person> people = personDao.getPersonList();
