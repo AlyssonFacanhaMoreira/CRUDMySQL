@@ -9,8 +9,12 @@ package br.alysson.crud.mysql.form;
 import br.alysson.crud.mysql.dao.PersonDao;
 import br.alysson.crud.mysql.logic.Person;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -18,11 +22,16 @@ import java.util.logging.Logger;
  */
 public class JFCRUD extends javax.swing.JFrame {
 
+    DefaultTableModel tableModel = new DefaultTableModel(null, new String[]{"ID", "Name", "Phone", "Address"});
+    ListSelectionModel listSelectionModel;
+    List<Person> people;
+    
     /**
      * Creates new form JFCRUD
      */
     public JFCRUD() {
         initComponents();
+        toggleEnableFields(false);
     }
 
     /**
@@ -43,10 +52,10 @@ public class JFCRUD extends javax.swing.JFrame {
         jTFName = new javax.swing.JTextField();
         jTFPhone = new javax.swing.JTextField();
         jTFAddress = new javax.swing.JTextField();
-        jTextField5 = new javax.swing.JTextField();
-        jComboBox1 = new javax.swing.JComboBox();
+        jTFSearchArg = new javax.swing.JTextField();
+        jCBField = new javax.swing.JComboBox();
         jLabel5 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        jBTSearch = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
@@ -54,7 +63,6 @@ public class JFCRUD extends javax.swing.JFrame {
         jBTUpdate = new javax.swing.JButton();
         jBTDelete = new javax.swing.JButton();
         jBTSave = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CRUD MySQL");
@@ -80,18 +88,18 @@ public class JFCRUD extends javax.swing.JFrame {
                     .addComponent(jLabel1))
                 .addGap(30, 30, 30)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jTFID, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel3))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jTFName)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel4)))
-                .addGap(18, 18, 18)
+                    .addComponent(jTFID, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTFName, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTFPhone, javax.swing.GroupLayout.PREFERRED_SIZE, 346, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTFAddress, javax.swing.GroupLayout.PREFERRED_SIZE, 346, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(9, 9, 9)
+                        .addComponent(jLabel3))
+                    .addComponent(jLabel4))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jTFPhone, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
+                    .addComponent(jTFAddress))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -112,23 +120,19 @@ public class JFCRUD extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jCBField.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Name", "Phone", "Address" }));
 
         jLabel5.setText("Search:");
 
-        jButton1.setText("Search");
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+        jBTSearch.setText("Search");
+        jBTSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBTSearchActionPerformed(evt);
             }
-        ));
+        });
+
+        jTable1.setModel(tableModel);
+        jTable1.setToolTipText("");
         jScrollPane1.setViewportView(jTable1);
 
         jBTNew.setText("New");
@@ -150,14 +154,12 @@ public class JFCRUD extends javax.swing.JFrame {
             }
         });
 
-        jButton6.setText("jButton6");
-
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(200, 200, 200)
+                .addGap(224, 224, 224)
                 .addComponent(jBTNew)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jBTUpdate)
@@ -189,11 +191,11 @@ public class JFCRUD extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jCBField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 568, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jTFSearchArg, javax.swing.GroupLayout.PREFERRED_SIZE, 568, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1))
+                                .addComponent(jBTSearch))
                             .addComponent(jLabel5))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -208,16 +210,16 @@ public class JFCRUD extends javax.swing.JFrame {
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTFSearchArg, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jBTSearch)
+                    .addComponent(jCBField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(11, 11, 11)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(1, 1, 1)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -225,6 +227,8 @@ public class JFCRUD extends javax.swing.JFrame {
 
     private void jBTNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBTNewActionPerformed
         // TODO add your handling code here:
+        
+        toggleEnableFields(true);
         jTFID.setEditable(false);
         
         jTFID.setText("");
@@ -235,6 +239,19 @@ public class JFCRUD extends javax.swing.JFrame {
 
     private void jBTSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBTSaveActionPerformed
         // TODO add your handling code here:
+        if(validateData()){ 
+            insert();
+            toggleEnableFields(false);
+        }
+        
+    }//GEN-LAST:event_jBTSaveActionPerformed
+
+    private void jBTSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBTSearchActionPerformed
+        // TODO add your handling code here:
+        search();
+    }//GEN-LAST:event_jBTSearchActionPerformed
+
+    public void insert(){
         Person person = new Person();
         person.setName(jTFName.getText());
         person.setPhone(jTFPhone.getText());
@@ -245,11 +262,63 @@ public class JFCRUD extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(JFCRUD.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void search(){
         
+        try{
+            PersonDao personDao = new PersonDao();
+            
+            String field = jCBField.getSelectedItem().toString().toLowerCase();
+            String where = "WHERE "+field+" LIKE ?";
+            String whereArg = jTFSearchArg.getText();
+            
+            people = personDao.getPeopleList(where, whereArg);
+            
+            displayData(people);
+        }catch(SQLException ex){
+            Logger.getLogger(JFCRUD.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    
+    }
+    
+    public void displayData(List<Person> people){
+        if(people.size()>0){
+            String line[] = new String[]{null,null,null,null};  
+            for(int i=0;i<people.size();i++){
+                tableModel.addRow(line);
+                tableModel.setValueAt(people.get(i).getId(), i, 0);
+                tableModel.setValueAt(people.get(i).getName(), i, 1);
+                tableModel.setValueAt(people.get(i).getPhone(), i, 2);
+                tableModel.setValueAt(people.get(i).getAddress(), i, 3);
+            }
         
+        }else{
+            JOptionPane.showMessageDialog(null, "No records found.");
+        }
+    
+    }
+    
+    public boolean validateData(){
+    
+        if(!jTFName.getText().equals("") &&
+           !jTFPhone.getText().equals("") &&
+           !jTFAddress.getText().equals("")){
+            return true;
+        }else{
+            JOptionPane.showMessageDialog(null, "Please fill all required fields.");
+            return false;
+        }
         
-    }//GEN-LAST:event_jBTSaveActionPerformed
-
+    }
+    
+    public void toggleEnableFields(boolean enable){
+        jTFID.setEditable(enable);
+        jTFName.setEditable(enable);
+        jTFPhone.setEditable(enable);
+        jTFAddress.setEditable(enable);
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -289,10 +358,9 @@ public class JFCRUD extends javax.swing.JFrame {
     private javax.swing.JButton jBTDelete;
     private javax.swing.JButton jBTNew;
     private javax.swing.JButton jBTSave;
+    private javax.swing.JButton jBTSearch;
     private javax.swing.JButton jBTUpdate;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton6;
-    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JComboBox jCBField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -305,7 +373,7 @@ public class JFCRUD extends javax.swing.JFrame {
     private javax.swing.JTextField jTFID;
     private javax.swing.JTextField jTFName;
     private javax.swing.JTextField jTFPhone;
+    private javax.swing.JTextField jTFSearchArg;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField5;
     // End of variables declaration//GEN-END:variables
 }

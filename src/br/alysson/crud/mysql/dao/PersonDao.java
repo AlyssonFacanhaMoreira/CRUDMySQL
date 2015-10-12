@@ -44,9 +44,10 @@ public class PersonDao {
     }
     
     
-    public List<Person> getPersonList() throws SQLException{
-        String sql = "SELECT * FROM "+TABLE;
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+    public List<Person> getPeopleList(String where, String whereArg) throws SQLException{
+        String sql = "SELECT * FROM "+TABLE+" "+where;
+        PreparedStatement preparedStatement = this.connection.prepareStatement(sql);
+        preparedStatement.setString(1, "%"+whereArg+"%");
         ResultSet resultSet = preparedStatement.executeQuery();
         
         List<Person> personList = new ArrayList<Person>();
