@@ -7,11 +7,8 @@
 package br.alysson.crud.mysql;
 
 import br.alysson.crud.mysql.dao.PersonDao;
-import br.alysson.crud.mysql.database.CreateConnection;
 import br.alysson.crud.mysql.logic.Person;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 /**
  *

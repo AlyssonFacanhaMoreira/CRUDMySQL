@@ -6,7 +6,6 @@
 
 package br.alysson.crud.mysql.database;
 
-import com.mysql.jdbc.NonRegisteringDriver;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
