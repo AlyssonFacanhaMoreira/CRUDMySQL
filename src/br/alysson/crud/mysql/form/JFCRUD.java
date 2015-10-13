@@ -10,10 +10,11 @@ import br.alysson.crud.mysql.dao.PersonDao;
 import br.alysson.crud.mysql.logic.Person;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -57,7 +58,7 @@ public class JFCRUD extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         jBTSearch = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        jTable = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
         jBTNew = new javax.swing.JButton();
         jBTUpdate = new javax.swing.JButton();
@@ -131,9 +132,18 @@ public class JFCRUD extends javax.swing.JFrame {
             }
         });
 
-        jTable1.setModel(tableModel);
-        jTable1.setToolTipText("");
-        jScrollPane1.setViewportView(jTable1);
+        jTable.setModel(tableModel);
+        jTable.setToolTipText("");
+        jTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listSelectionModel = jTable.getSelectionModel();
+        listSelectionModel.addListSelectionListener(new ListSelectionListener(){
+            public void valueChanged(ListSelectionEvent e){
+                if(!e.getValueIsAdjusting()){
+                    selectedTableRow(jTable);
+                }
+            }
+        });
+        jScrollPane1.setViewportView(jTable);
 
         jBTNew.setText("New");
         jBTNew.addActionListener(new java.awt.event.ActionListener() {
@@ -144,8 +154,18 @@ public class JFCRUD extends javax.swing.JFrame {
 
         jBTUpdate.setText("Update");
         jBTUpdate.setToolTipText("");
+        jBTUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBTUpdateActionPerformed(evt);
+            }
+        });
 
         jBTDelete.setText("Delete");
+        jBTDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBTDeleteActionPerformed(evt);
+            }
+        });
 
         jBTSave.setText("Save");
         jBTSave.addActionListener(new java.awt.event.ActionListener() {
@@ -231,17 +251,15 @@ public class JFCRUD extends javax.swing.JFrame {
         toggleEnableFields(true);
         jTFID.setEditable(false);
         
-        jTFID.setText("");
-        jTFName.setText("");
-        jTFPhone.setText("");
-        jTFAddress.setText("");
+        clearFields();
     }//GEN-LAST:event_jBTNewActionPerformed
 
     private void jBTSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBTSaveActionPerformed
         // TODO add your handling code here:
         if(validateData()){ 
             insert();
-            toggleEnableFields(false);
+            defaultSearch();
+            search();
         }
         
     }//GEN-LAST:event_jBTSaveActionPerformed
@@ -251,6 +269,26 @@ public class JFCRUD extends javax.swing.JFrame {
         search();
     }//GEN-LAST:event_jBTSearchActionPerformed
 
+    private void jBTDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBTDeleteActionPerformed
+        // TODO add your handling code here:
+        try{
+            delete();
+            defaultSearch();
+        }catch(SQLException e){
+            JOptionPane.showMessageDialog(null, "Error while deleting record: "+e.getMessage());
+        }
+    }//GEN-LAST:event_jBTDeleteActionPerformed
+
+    private void jBTUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBTUpdateActionPerformed
+        // TODO add your handling code here:
+        try{
+            update();
+            defaultSearch();
+        }catch(SQLException e){
+            JOptionPane.showMessageDialog(null, "Error while updating record: "+e.getMessage());
+        }
+    }//GEN-LAST:event_jBTUpdateActionPerformed
+
     public void insert(){
         Person person = new Person();
         person.setName(jTFName.getText());
@@ -259,8 +297,9 @@ public class JFCRUD extends javax.swing.JFrame {
         try {
             PersonDao personDao = new PersonDao();
             personDao.create(person);
-        } catch (SQLException ex) {
-            Logger.getLogger(JFCRUD.class.getName()).log(Level.SEVERE, null, ex);
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error while inserting into database: "+e.getMessage());
         }
     }
     
@@ -276,13 +315,60 @@ public class JFCRUD extends javax.swing.JFrame {
             people = personDao.getPeopleList(where, whereArg);
             
             displayData(people);
-        }catch(SQLException ex){
-            Logger.getLogger(JFCRUD.class.getName()).log(Level.SEVERE, null, ex);
+        }catch(SQLException e){
+            JOptionPane.showMessageDialog(null, "Error while searching through database: "+e.getMessage());
         }
     
     }
     
+    public void update() throws SQLException{
+        if(jTable.getSelectedRow()!=-1 && validateData()){
+            Person person = new Person();
+            PersonDao personDao = new PersonDao();
+            
+            person.setId(Long.valueOf(jTFID.getText()));
+            person.setName(jTFName.getText());
+            person.setPhone(jTFPhone.getText());
+            person.setAddress(jTFAddress.getText());
+            
+            personDao.update(person);
+        }
+    }
+    
+    public void delete() throws SQLException{
+        int ans = JOptionPane.showConfirmDialog(null, "Do you really wish to delete this record?", 
+                                                "Warning",JOptionPane.YES_NO_OPTION);
+        if(ans == JOptionPane.YES_NO_OPTION){
+                PersonDao personDao = new PersonDao();
+                personDao.delete(people.get(jTable.getSelectedRow()));
+            
+        }
+    }
+    
+    public void defaultSearch(){
+        jTFSearchArg.setText("");
+        search();
+    }
+    
+    public void selectedTableRow(JTable table){
+        if(table.getSelectedRow()!= -1){
+            jTFID.setText(String.valueOf(people.get(table.getSelectedRow()).getId()));
+            jTFName.setText(String.valueOf(people.get(table.getSelectedRow()).getName()));
+            jTFPhone.setText(String.valueOf(people.get(table.getSelectedRow()).getPhone()));
+            jTFAddress.setText(String.valueOf(people.get(table.getSelectedRow()).getAddress()));
+            toggleEnableFields(true);
+            jTFID.setEditable(false);
+        }else{
+            clearFields();
+        }
+    }
+    
+    
     public void displayData(List<Person> people){
+        while(tableModel.getRowCount()>0){
+            tableModel.removeRow(0);
+        }
+        
         if(people.size()>0){
             String line[] = new String[]{null,null,null,null};  
             for(int i=0;i<people.size();i++){
@@ -317,6 +403,18 @@ public class JFCRUD extends javax.swing.JFrame {
         jTFName.setEditable(enable);
         jTFPhone.setEditable(enable);
         jTFAddress.setEditable(enable);
+        
+        if(enable){
+            jTFID.setEditable(!enable);
+        }
+        
+    }
+    
+    public void clearFields(){
+        jTFID.setText("");
+        jTFName.setText("");
+        jTFPhone.setText("");
+        jTFAddress.setText("");
     }
     
     /**
@@ -374,6 +472,6 @@ public class JFCRUD extends javax.swing.JFrame {
     private javax.swing.JTextField jTFName;
     private javax.swing.JTextField jTFPhone;
     private javax.swing.JTextField jTFSearchArg;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable jTable;
     // End of variables declaration//GEN-END:variables
 }
